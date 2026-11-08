@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partage : les comptes entre colocs et amis, sans prise de tête</title>
+<meta name="description" content="Notez qui a payé quoi, Partage calcule qui doit combien à qui avec le moins de virements possible. Gratuit, sans compte, les données restent sur votre appareil.">
+<meta name="theme-color" content="#047857">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23047857'/%3E%3Cpath d='M9 16h14M16 9v14' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#047857; --primary-hover:#065F46; --primary-soft:#D1FAE5; --secondary:#10B981;
+  --owe:#DC2626; --owe-soft:#FEE2E2; --owe-text:#B91C1C;
+  --bg:#F8FAFC; --fg:#0F172A; --card:#FFFFFF; --muted:#F0F8F6; --muted-fg:#475569; --border:#E1F2ED; --line:#E2E8F0;
+  --ring:#059669;
+  --r-sm:10px; --r:16px; --r-lg:24px;
+  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:32px; --s6:48px; --s7:64px;
+  --head:'Lexend',system-ui,sans-serif; --body:'Source Sans 3',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--body); font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--head); margin:0; line-height:1.15; text-wrap:balance}
+button,input,select{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--ring); outline-offset:2px; border-radius:8px}
+.sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+svg{flex-shrink:0}
+
+/* ---------- top bar ---------- */
+.top{position:sticky; top:0; z-index:40; background:rgba(248,250,252,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px; margin:0 auto; padding:10px var(--s3); display:flex; align-items:center; justify-content:space-between; gap:var(--s3)}
+.logo{display:flex; align-items:center; gap:10px; font-family:var(--head); font-weight:700; font-size:1.2rem; text-decoration:none; color:var(--fg)}
+.logo-mark{width:34px; height:34px; border-radius:10px; background:var(--primary); display:grid; place-items:center}
+.logo-mark svg{width:20px; height:20px}
+.top-actions{display:flex; gap:var(--s2)}
+
+/* ---------- buttons ---------- */
+.btn{appearance:none; border:0; cursor:pointer; min-height:44px; padding:0 18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--head); font-weight:500; font-size:.95rem; text-decoration:none; transition:background-color .18s, color .18s, transform .12s; white-space:nowrap}
+.btn svg{width:18px; height:18px}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--primary); color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-soft{background:var(--muted); color:var(--primary-hover); border:1px solid var(--border)}
+.btn-soft:hover{background:var(--primary-soft)}
+.btn-ghost{background:transparent; color:var(--muted-fg)}
+.btn-ghost:hover{background:#EEF2F6; color:var(--fg)}
+.btn-danger{background:var(--owe); color:#fff}
+.btn-danger:hover{background:#B91C1C}
+.icon-btn{width:44px; height:44px; padding:0; border-radius:12px}
+@media (max-width:560px){.top-actions .label{display:none} .top-actions .btn{width:44px; padding:0}}
+
+/* ---------- hero ---------- */
+.hero{max-width:1180px; margin:0 auto; padding:var(--s6) var(--s3) var(--s4); display:grid; grid-template-columns:1.1fr .9fr; gap:var(--s5); align-items:center}
+@media (max-width:880px){.hero{grid-template-columns:1fr; padding-top:var(--s5)}}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:var(--primary-soft); color:var(--primary-hover); font-weight:600; font-size:.85rem; margin-bottom:var(--s3)}
+.hero h1{font-size:clamp(2.2rem,5.5vw,3.8rem); font-weight:700; letter-spacing:-.02em}
+.hero h1 .hl{color:var(--primary); position:relative; white-space:nowrap}
+.hero h1 .hl svg{position:absolute; left:0; bottom:-.12em; width:100%; height:.35em}
+.hero p{font-size:1.15rem; color:var(--muted-fg); max-width:52ch; margin:var(--s3) 0 var(--s4)}
+.hero-cta{display:flex; flex-wrap:wrap; gap:var(--s2)}
+.trust{display:flex; flex-wrap:wrap; gap:var(--s3); margin-top:var(--s4); color:var(--muted-fg); font-size:.92rem}
+.trust span{display:inline-flex; align-items:center; gap:6px}
+.trust svg{width:18px; height:18px; color:var(--primary)}
+
+/* hero illustration: animated flow */
+.flow{background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--s4); position:relative; overflow:hidden}
+.flow svg{width:100%; height:auto; display:block}
+.flow-caption{font-size:.9rem; color:var(--muted-fg); text-align:center; margin-top:var(--s2)}
+
+/* ---------- app ---------- */
+.app{max-width:1180px; margin:0 auto; padding:var(--s4) var(--s3) var(--s7); display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--s4); align-items:start}
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  .app .col{display:contents}
+  #card-people{order:1} #card-form{order:2} #card-bal{order:3} #card-set{order:4} #card-hist{order:5}
+}
+.col{display:grid; gap:var(--s4)}
+.col-side{position:sticky; top:80px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--s4)}
+@media (max-width:480px){.card{padding:var(--s3)}}
+.card-head{display:flex; align-items:center; justify-content:space-between; gap:var(--s2); margin-bottom:var(--s3)}
+.card-head h2{font-size:1.2rem; font-weight:600; display:flex; align-items:center; gap:10px}
+.step{width:28px; height:28px; border-radius:50%; background:var(--primary-soft); color:var(--primary-hover); display:grid; place-items:center; font-size:.85rem; font-weight:700}
+.meta{font-size:.88rem; color:var(--muted-fg)}
+
+/* group name */
+.group-name{display:flex; align-items:center; gap:10px; margin-bottom:var(--s3)}
+.group-name input{border:0; background:transparent; font-family:var(--head); font-weight:600; font-size:1.5rem; padding:4px 8px; margin-left:-8px; border-radius:10px; width:100%; min-width:0}
+.group-name input:hover{background:var(--muted)}
+.group-name input:focus{background:var(--muted); outline:2px solid var(--ring)}
+
+/* people */
+.people{display:flex; flex-wrap:wrap; gap:var(--s2); margin-bottom:var(--s3)}
+.chip{display:inline-flex; align-items:center; gap:8px; padding:4px 6px 4px 4px; border-radius:999px; background:var(--muted); border:1px solid var(--border); font-weight:600}
+.chip .x{width:32px; height:32px; border:0; border-radius:50%; background:transparent; cursor:pointer; display:grid; place-items:center; color:var(--muted-fg)}
+.chip .x:hover{background:#fff; color:var(--owe)}
+.chip .x svg{width:16px; height:16px}
+.avatar{width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-family:var(--head); font-weight:600; font-size:.9rem}
+.add-person{display:flex; gap:var(--s2)}
+.field{display:grid; gap:6px}
+.field label,.legend-label{font-weight:600; font-size:.92rem}
+.input{min-height:48px; width:100%; padding:0 14px; border-radius:12px; border:1.5px solid #CBD5E1; background:#fff; transition:border-color .15s, box-shadow .15s}
+.input:hover{border-color:#94A3B8}
+.input:focus{outline:none; border-color:var(--ring); box-shadow:0 0 0 3px rgba(5,150,105,.2)}
+.input[aria-invalid="true"]{border-color:var(--owe)}
+.err{color:var(--owe-text); font-size:.85rem; font-weight:600; min-height:0}
+.err:empty{display:none}
+.help{font-size:.85rem; color:var(--muted-fg)}
+
+/* expense form */
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--s3)}
+.form-grid .full{grid-column:1/-1}
+@media (max-width:480px){.form-grid{grid-template-columns:1fr}}
+.amount-wrap{position:relative}
+.amount-wrap .input{padding-right:40px; font-variant-numeric:tabular-nums}
+.amount-wrap span{position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--muted-fg); font-weight:600}
+.cats{display:flex; flex-wrap:wrap; gap:var(--s2); border:0; padding:0; margin:0}
+.cats legend{margin-bottom:6px}
+.cat input,.split input{position:absolute; opacity:0; pointer-events:none}
+.cat label,.split label{display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border-radius:999px; border:1.5px solid var(--line); background:#fff; cursor:pointer; font-weight:500; transition:background-color .15s, border-color .15s, color .15s; user-select:none}
+.cat label svg{width:18px; height:18px}
+.cat input:checked + label,.split input:checked + label{background:var(--primary-soft); border-color:var(--primary); color:var(--primary-hover)}
+.cat input:focus-visible + label,.split input:focus-visible + label{outline:3px solid var(--ring); outline-offset:2px}
+.split label .tick{width:18px; height:18px; border-radius:6px; border:1.5px solid #94A3B8; display:grid; place-items:center; background:#fff}
+.split input:checked + label .tick{background:var(--primary); border-color:var(--primary)}
+.split label .tick svg{width:12px; height:12px; opacity:0}
+.split input:checked + label .tick svg{opacity:1}
+.split-row{display:flex; flex-wrap:wrap; gap:var(--s2)}
+.form-foot{display:flex; justify-content:space-between; align-items:center; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s3)}
+.per-head{font-size:.92rem; color:var(--muted-fg)}
+.per-head b{color:var(--fg)}
+
+/* expense list */
+.list{list-style:none; margin:0; padding:0; display:grid; gap:var(--s2)}
+.exp{display:grid; grid-template-columns:44px 1fr auto auto; gap:12px; align-items:center; padding:10px 8px 10px 10px; border-radius:var(--r); border:1px solid var(--line); background:#fff}
+.exp .ico{width:44px; height:44px; border-radius:12px; display:grid; place-items:center}
+.exp .ico svg{width:22px; height:22px}
+.exp .t{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.exp .s{font-size:.85rem; color:var(--muted-fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.exp .amt{font-family:var(--head); font-weight:600}
+.exp.settle{background:var(--muted); border-style:dashed}
+.exp > div{min-width:0}
+.empty{text-align:center; padding:var(--s5) var(--s3); color:var(--muted-fg)}
+.empty svg{width:72px; height:72px; color:#CBD5E1; margin-bottom:var(--s2)}
+.filters{display:flex; gap:var(--s2); align-items:center}
+
+/* totals */
+.totals{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s2); margin-bottom:var(--s4)}
+.tot{padding:14px; border-radius:var(--r); background:var(--muted); border:1px solid var(--border)}
+.tot span{display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted-fg); font-weight:600}
+.tot b{display:block; font-family:var(--head); font-size:1.35rem; font-weight:600; margin-top:2px}
+@media (max-width:420px){.tot b{font-size:1.1rem}}
+
+/* balances */
+.bal-list{display:grid; gap:10px}
+.bal{display:grid; grid-template-columns:120px 1fr 96px; gap:12px; align-items:center}
+@media (max-width:480px){.bal{grid-template-columns:84px 1fr 84px}}
+.bal .who{display:flex; align-items:center; gap:8px; font-weight:600; min-width:0}
+.bal .who .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bal .who .avatar{width:30px; height:30px; font-size:.78rem}
+.track{position:relative; height:28px; background:#F1F5F9; border-radius:8px; overflow:hidden}
+.track::after{content:""; position:absolute; left:50%; top:0; bottom:0; width:2px; background:#94A3B8; transform:translateX(-1px)}
+.fill{position:absolute; top:4px; bottom:4px; border-radius:6px; width:0}
+.fill.pos{left:50%; background:var(--secondary)}
+.fill.neg{right:50%; background:var(--owe)}
+.bal .val{text-align:right; font-family:var(--head); font-weight:600; font-variant-numeric:tabular-nums}
+.val.pos{color:var(--primary-hover)} .val.neg{color:var(--owe-text)}
+.bal-legend{display:flex; justify-content:space-between; font-size:.8rem; color:var(--muted-fg); margin-top:var(--s2); padding:0 96px 0 132px}
+@media (max-width:480px){.bal-legend{padding:0 84px 0 96px}}
+
+/* settlements */
+.settle-list{list-style:none; margin:0; padding:0; display:grid; gap:var(--s2)}
+.tx{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:12px; border-radius:var(--r); border:1px solid var(--line)}
+.tx .route{display:flex; align-items:center; gap:8px; min-width:0}
+.tx .route .avatar{width:32px; height:32px; font-size:.8rem}
+.tx .arrow{flex:1; min-width:40px; height:24px; position:relative}
+.tx .arrow svg{width:100%; height:24px; overflow:visible}
+.tx .txt{font-size:.95rem; min-width:0}
+.tx .txt b{font-family:var(--head)}
+.tx .txt .amt{display:block; font-family:var(--head); font-weight:700; font-size:1.15rem; color:var(--fg)}
+@media (max-width:520px){.tx{grid-template-columns:1fr; } .tx .btn{width:100%}}
+.done{display:grid; justify-items:center; text-align:center; gap:var(--s2); padding:var(--s4) var(--s3)}
+.done svg{width:84px; height:84px}
+.done h3{font-size:1.15rem}
+.done p{margin:0; color:var(--muted-fg)}
+
+/* toast */
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(140%); background:#0F172A; color:#fff; padding:12px 14px 12px 18px; border-radius:14px; display:flex; align-items:center; gap:14px; z-index:80; max-width:calc(100vw - 32px); box-shadow:0 10px 30px rgba(15,23,42,.25); transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast button{background:transparent; border:0; color:#6EE7B7; font-weight:700; cursor:pointer; min-height:44px; padding:0 8px; border-radius:8px}
+
+/* dialog */
+dialog{border:0; border-radius:var(--r-lg); padding:var(--s4); max-width:420px; width:calc(100vw - 32px)}
+dialog::backdrop{background:rgba(15,23,42,.45)}
+dialog h3{font-size:1.2rem; margin-bottom:var(--s2)}
+dialog p{color:var(--muted-fg); margin:0 0 var(--s4)}
+dialog .row{display:flex; justify-content:flex-end; gap:var(--s2)}
+
+footer{max-width:1180px; margin:0 auto; padding:var(--s4) var(--s3) var(--s6); color:var(--muted-fg); font-size:.9rem; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:var(--s3); flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:0s!important; animation-duration:0s!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="#" aria-label="Partage, accueil">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></span>
+      Partage
+    </a>
+    <div class="top-actions">
+      <button class="btn btn-ghost" id="copyBtn" type="button" aria-label="Copier le résumé des comptes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="label">Copier le résumé</span></button>
+      <button class="btn btn-ghost" id="resetBtn" type="button" aria-label="Tout effacer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg><span class="label">Tout effacer</span></button>
+    </div>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="hero-title">
+  <div>
+    <span class="eyebrow h-anim">Gratuit · sans compte · hors ligne</span>
+    <h1 id="hero-title" class="h-anim">Les comptes entre colocs, <span class="hl">réglés en 2 min<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path id="underline" d="M3 14 C 50 4, 120 4, 197 12" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/></svg></span>.</h1>
+    <p class="h-anim">Courses, loyer, resto, week-end : notez qui a payé quoi. Partage calcule qui doit combien à qui, avec le <strong>moins de virements possible</strong>.</p>
+    <div class="hero-cta h-anim">
+      <a class="btn btn-primary" href="#app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Commencer mes comptes</a>
+      <button class="btn btn-soft" id="demoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 9-14 9V3z"/></svg>
+        Essayer avec un exemple</button>
+    </div>
+    <div class="trust h-anim">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Données sur ton appareil</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Aucune inscription</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Marche sur mobile</span>
+    </div>
+  </div>
+  <div class="flow h-anim" aria-hidden="true">
+    <svg viewBox="0 0 400 260" fill="none">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#047857"/></marker></defs>
+      <!-- 4 people around, many messy debts then simplified -->
+      <g id="messy" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="5 6">
+        <path class="mess" d="M90 70 L310 70"/><path class="mess" d="M90 70 L310 200"/><path class="mess" d="M90 200 L310 70"/>
+        <path class="mess" d="M90 200 L310 200"/><path class="mess" d="M90 70 L90 200"/><path class="mess" d="M310 70 L310 200"/>
+      </g>
+      <g id="clean" stroke="#047857" stroke-width="3.5" stroke-linecap="round" marker-end="url(#ah)">
+        <path class="cl" d="M112 82 Q 200 120 288 188"/>
+        <path class="cl" d="M112 200 L 286 200"/>
+      </g>
+      <g font-family="Lexend" font-weight="600" font-size="15" text-anchor="middle">
+        <g class="node"><circle cx="90" cy="70" r="26" fill="#7C3AED"/><text x="90" y="75" fill="#fff">LÉ</text></g>
+        <g class="node"><circle cx="310" cy="70" r="26" fill="#0369A1"/><text x="310" y="75" fill="#fff">SA</text></g>
+        <g class="node"><circle cx="90" cy="200" r="26" fill="#C2410C"/><text x="90" y="205" fill="#fff">MO</text></g>
+        <g class="node"><circle cx="310" cy="200" r="26" fill="#047857"/><text x="310" y="205" fill="#fff">DA</text></g>
+      </g>
+      <g id="badges" font-family="Lexend" font-weight="600" font-size="13">
+        <g class="badge"><rect x="160" y="110" width="74" height="26" rx="13" fill="#D1FAE5"/><text x="197" y="128" text-anchor="middle" fill="#065F46">42,50 €</text></g>
+        <g class="badge"><rect x="163" y="214" width="68" height="26" rx="13" fill="#D1FAE5"/><text x="197" y="232" text-anchor="middle" fill="#065F46">18,00 €</text></g>
+      </g>
+    </svg>
+    <p class="flow-caption" id="flowCap">6 dettes croisées → 2 virements</p>
+  </div>
+</section>
+
+<main class="app" id="app" aria-label="Application de partage des dépenses">
+  <div class="col">
+    <!-- people -->
+    <section class="card" id="card-people" aria-labelledby="h-people">
+      <div class="group-name">
+        <label for="groupName" class="sr-only">Nom du groupe</label>
+        <input id="groupName" value="Ma coloc" maxlength="40" autocomplete="off">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      </div>
+      <div class="card-head"><h2 id="h-people"><span class="step" aria-hidden="true">1</span>Qui fait partie du groupe ?</h2><span class="meta num" id="peopleCount"></span></div>
+      <ul class="people" id="people" aria-label="Membres du groupe" style="list-style:none;padding:0;margin:0 0 16px"></ul>
+      <form class="add-person" id="personForm" novalidate>
+        <div class="field" style="flex:1">
+          <label for="personName" class="sr-only">Prénom</label>
+          <input class="input" id="personName" placeholder="Prénom, ex. Sarah" maxlength="20" autocomplete="off" aria-describedby="personErr">
+        </div>
+        <button class="btn btn-soft" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+      </form>
+      <p class="err" id="personErr" role="alert"></p>
+    </section>
+
+    <!-- add expense -->
+    <section class="card" id="card-form" aria-labelledby="h-exp">
+      <div class="card-head"><h2 id="h-exp"><span class="step" aria-hidden="true">2</span>Ajouter une dépense</h2></div>
+      <form id="expForm" novalidate>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="expTitle">Quoi ?</label>
+            <input class="input" id="expTitle" placeholder="ex. Courses Lidl" maxlength="40" autocomplete="off" aria-describedby="titleErr">
+            <p class="err" id="titleErr"></p>
+          </div>
+          <div class="field">
+            <label for="expAmount">Combien ?</label>
+            <div class="amount-wrap"><input class="input" id="expAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" aria-describedby="amountErr"><span aria-hidden="true">€</span></div>
+            <p class="err" id="amountErr"></p>
+          </div>
+          <div class="field">
+            <label for="expPayer">Payé par</label>
+            <select class="input" id="expPayer"></select>
+          </div>
+          <fieldset class="cats full" id="cats">
+            <legend class="legend-label">Catégorie</legend>
+          </fieldset>
+          <fieldset class="full" style="border:0;padding:0;margin:0">
+            <legend class="legend-label" style="margin-bottom:6px">Pour qui ? <span class="help">(partagé à parts égales)</span></legend>
+            <div class="split-row" id="splitRow"></div>
+            <p class="err" id="splitErr"></p>
+          </fieldset>
+        </div>
+        <div class="form-foot">
+          <span class="per-head" id="perHead" aria-live="polite"></span>
+          <button class="btn btn-primary" type="submit" id="addExpBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter la dépense</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- history -->
+    <section class="card" id="card-hist" aria-labelledby="h-hist">
+      <div class="card-head"><h2 id="h-hist">Historique</h2><span class="meta num" id="expCount"></span></div>
+      <ul class="list" id="expList" aria-live="polite"></ul>
+    </section>
+  </div>
+
+  <div class="col col-side">
+    <section class="card" id="card-bal" aria-labelledby="h-bal">
+      <div class="card-head"><h2 id="h-bal"><span class="step" aria-hidden="true">3</span>Les soldes</h2></div>
+      <div class="totals">
+        <div class="tot"><span>Total dépensé</span><b class="num" id="totAll" data-v="0">0 €</b></div>
+        <div class="tot"><span>Par personne</span><b class="num" id="totPer" data-v="0">0 €</b></div>
+        <div class="tot"><span>Dépenses</span><b class="num" id="totCount" data-v="0">0</b></div>
+      </div>
+      <div class="bal-list" id="balList" role="list" aria-label="Solde de chaque membre"></div>
+      <div class="bal-legend" aria-hidden="true"><span>doit de l'argent</span><span>doit recevoir</span></div>
+    </section>
+
+    <section class="card" id="card-set" aria-labelledby="h-set">
+      <div class="card-head"><h2 id="h-set"><span class="step" aria-hidden="true">4</span>Pour tout régler</h2><span class="meta num" id="txCount"></span></div>
+      <ul class="settle-list" id="setList" aria-live="polite"></ul>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span>Partage : tes données restent dans ce navigateur, rien n'est envoyé nulle part.</span>
+  <span>Algorithme : on solde les plus grosses dettes en premier pour limiter le nombre de virements.</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="toastUndo" hidden>Annuler</button></div>
+
+<dialog id="confirmDlg" aria-labelledby="dlgTitle">
+  <h3 id="dlgTitle">Tout effacer ?</h3>
+  <p id="dlgText">Les membres et toutes les dépenses de ce groupe seront supprimés de cet appareil.</p>
+  <div class="row">
+    <button class="btn btn-ghost" type="button" id="dlgCancel">Annuler</button>
+    <button class="btn btn-danger" type="button" id="dlgOk">Tout effacer</button>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js"></script>
+<script>
+(() => {
+  // ---------- setup ----------
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = (!reduce && window.gsap) ? window.gsap : null;
+  if (G && window.Flip) G.registerPlugin(Flip);
+  const $ = s => document.querySelector(s);
+  const euro = v => (Math.abs(v) < 0.005 ? 0 : Math.round(v * 100) / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const COLORS = ['#7C3AED', '#0369A1', '#C2410C', '#047857', '#BE185D', '#4338CA', '#0E7490', '#A16207', '#15803D', '#9333EA'];
+  const ico = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const CATS = {
+    courses: { label: 'Courses', color: '#047857', bg: '#D1FAE5', svg: ico('<path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/>') },
+    logement: { label: 'Logement', color: '#0369A1', bg: '#E0F2FE', svg: ico('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>') },
+    sorties: { label: 'Sorties', color: '#BE185D', bg: '#FCE7F3', svg: ico('<path d="M8 22h8M12 15v7M5 3h14l-1 6a6 6 0 0 1-12 0z"/>') },
+    transport: { label: 'Transport', color: '#C2410C', bg: '#FFEDD5', svg: ico('<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21l1-4M16 21l-1-4"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/>') },
+    autre: { label: 'Autre', color: '#4338CA', bg: '#E0E7FF', svg: ico('<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>') },
+    remb: { label: 'Remboursement', color: '#475569', bg: '#F1F5F9', svg: ico('<path d="M4 12h16M14 6l6 6-6 6"/>') }
+  };
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  const XICON = ico('<path d="M18 6L6 18M6 6l12 12"/>');
+
+  // ---------- state ----------
+  const KEY = 'partage.v1';
+  let state = load() || { name: 'Ma coloc', people: [], expenses: [], nextId: 1 };
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: keep in memory */ } }
+  const person = id => state.people.find(p => p.id === id);
+  const initials = n => n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const avatar = p => `<span class="avatar" style="background:${p.color}" aria-hidden="true">${esc(initials(p.name))}</span>`;
+
+  // ---------- computations ----------
+  function balances() {
+    // integer cents: exact split, remainder cents go to the first people so the sum is always zero
+    const b = Object.fromEntries(state.people.map(p => [p.id, 0]));
+    for (const e of state.expenses) {
+      const among = e.among.filter(id => id in b);
+      if (!(e.payer in b) || !among.length) continue;
+      const c = Math.round(e.amount * 100), base = Math.floor(c / among.length), rem = c - base * among.length;
+      b[e.payer] += c;
+      among.forEach((id, i) => b[id] -= base + (i < rem ? 1 : 0));
+    }
+    for (const k in b) b[k] = b[k] / 100;
+    return b;
+  }
+  function settlements(b) {
+    const cred = [], debt = [];
+    for (const [id, v] of Object.entries(b)) { const c = Math.round(v * 100); if (c > 0) cred.push({ id: +id, v: c }); else if (c < 0) debt.push({ id: +id, v: -c }); }
+    cred.sort((a, c) => c.v - a.v); debt.sort((a, c) => c.v - a.v);
+    const out = []; let i = 0, j = 0;
+    while (i < debt.length && j < cred.length) {
+      const m = Math.min(debt[i].v, cred[j].v);
+      if (m > 0) out.push({ from: debt[i].id, to: cred[j].id, amount: m / 100 });
+      debt[i].v -= m; cred[j].v -= m;
+      if (debt[i].v === 0) i++; if (cred[j].v === 0) j++;
+    }
+    return out;
+  }
+
+  // ---------- animation helpers ----------
+  function countTo(el, to, fmt) {
+    const from = +el.dataset.v || 0; el.dataset.v = to;
+    if (!G || from === to) { el.textContent = fmt(to); return; }
+    const o = { v: from };
+    G.to(o, { v: to, duration: .7, ease: 'power2.out', onUpdate: () => el.textContent = fmt(o.v) });
+  }
+  function pop(el) { if (G && el) G.fromTo(el, { scale: .6, opacity: 0 }, { scale: 1, opacity: 1, duration: .45, ease: 'back.out(2)' }); }
+  function shake(el) { if (G) G.fromTo(el, { x: -8 }, { x: 0, duration: .5, ease: 'elastic.out(1,.3)' }); }
+
+  // ---------- toast ----------
+  let toastT, undoFn = null;
+  function toast(msg, undo) {
+    $('#toastMsg').textContent = msg; undoFn = undo || null; $('#toastUndo').hidden = !undo;
+    $('#toast').classList.add('show'); clearTimeout(toastT);
+    toastT = setTimeout(() => $('#toast').classList.remove('show'), undo ? 5000 : 2600);
+  }
+  $('#toastUndo').addEventListener('click', () => { if (undoFn) undoFn(); $('#toast').classList.remove('show'); });
+
+  // ---------- render: people ----------
+  function renderPeople(newId, resetSplit) {
+    const ul = $('#people');
+    ul.innerHTML = state.people.map(p => `<li class="chip" data-id="${p.id}">${avatar(p)}<span>${esc(p.name)}</span>
+      <button class="x" type="button" data-del-person="${p.id}" aria-label="Retirer ${esc(p.name)}">${XICON}</button></li>`).join('');
+    $('#peopleCount').textContent = state.people.length ? state.people.length + (state.people.length > 1 ? ' personnes' : ' personne') : '';
+    if (newId) pop(ul.querySelector(`[data-id="${newId}"]`));
+    // payer select + split chips
+    const sel = $('#expPayer'), prev = sel.value;
+    sel.innerHTML = state.people.length ? state.people.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('') : '<option value="">Ajoute d\'abord des membres</option>';
+    if (prev && person(+prev)) sel.value = prev;
+    const checked = new Set([...document.querySelectorAll('#splitRow input:checked')].map(i => +i.value));
+    const fresh = resetSplit || !document.querySelector('#splitRow input');
+    $('#splitRow').innerHTML = state.people.map(p => {
+      const on = fresh || checked.has(p.id) || p.id === newId;
+      return `<span class="split"><input type="checkbox" id="sp${p.id}" value="${p.id}" ${on ? 'checked' : ''}><label for="sp${p.id}"><span class="tick">${CHECK}</span>${esc(p.name)}</label></span>`;
+    }).join('') || '<span class="help">Ajoute des membres pour choisir.</span>';
+    updatePerHead();
+  }
+
+  // ---------- render: categories ----------
+  $('#cats').insertAdjacentHTML('beforeend', Object.entries(CATS).filter(([k]) => k !== 'remb').map(([k, c], i) =>
+    `<span class="cat"><input type="radio" name="cat" id="cat-${k}" value="${k}" ${i === 0 ? 'checked' : ''}><label for="cat-${k}">${c.svg}${c.label}</label></span>`).join(''));
+
+  // ---------- render: expenses ----------
+  function renderExpenses(newId) {
+    const ul = $('#expList');
+    const list = [...state.expenses].reverse();
+    $('#expCount').textContent = list.length ? list.length + (list.length > 1 ? ' entrées' : ' entrée') : '';
+    if (!list.length) {
+      ul.innerHTML = `<li class="empty">${ico('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>')}<div>Aucune dépense pour l'instant.<br>Ajoute la première juste au-dessus.</div></li>`;
+      return;
+    }
+    ul.innerHTML = list.map(e => {
+      const c = CATS[e.cat] || CATS.autre, payer = person(e.payer);
+      const among = e.among.map(person).filter(Boolean);
+      const who = e.cat === 'remb'
+        ? `${esc(payer ? payer.name : '?')} → ${esc(among[0] ? among[0].name : '?')}`
+        : `${esc(payer ? payer.name : '?')} a payé · ${among.length === state.people.length ? 'pour tout le monde' : 'pour ' + among.map(p => esc(p.name)).join(', ')}`;
+      return `<li class="exp ${e.cat === 'remb' ? 'settle' : ''}" data-id="${e.id}">
+        <span class="ico" style="background:${c.bg};color:${c.color}">${c.svg}</span>
+        <div><div class="t">${esc(e.title)}</div><div class="s">${who}</div></div>
+        <span class="amt num">${euro(e.amount)}</span>
+        <button class="btn btn-ghost icon-btn" type="button" data-del-exp="${e.id}" aria-label="Supprimer ${esc(e.title)}">${XICON}</button></li>`;
+    }).join('');
+    if (G && newId) {
+      const el = ul.querySelector(`[data-id="${newId}"]`);
+      G.fromTo(el, { opacity: 0, y: -16, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .5, ease: 'back.out(1.6)' });
+      G.fromTo(el, { backgroundColor: '#D1FAE5' }, { backgroundColor: el.classList.contains('settle') ? '#F0F8F6' : '#FFFFFF', duration: 1.4, delay: .3, clearProps: 'backgroundColor' });
+    }
+  }
+
+  // ---------- render: balances + settlements ----------
+  let lastTxKey = '';
+  function renderBalances() {
+    const b = balances();
+    const real = state.expenses.filter(e => e.cat !== 'remb');
+    const total = real.reduce((s, e) => s + e.amount, 0);
+    countTo($('#totAll'), total, euro);
+    countTo($('#totPer'), state.people.length ? total / state.people.length : 0, euro);
+    countTo($('#totCount'), real.length, v => Math.round(v).toString());
+
+    const wrap = $('#balList');
+    const flipState = (G && window.Flip) ? Flip.getState('#balList .bal') : null;
+    const max = Math.max(1, ...Object.values(b).map(Math.abs));
+    const sorted = [...state.people].sort((x, y) => b[y.id] - b[x.id]);
+    // reuse nodes so Flip can animate reordering
+    const existing = new Map([...wrap.children].map(n => [+n.dataset.id, n]));
+    wrap.querySelectorAll('.bal').forEach(n => { if (!person(+n.dataset.id)) n.remove(); });
+    if (!sorted.length) wrap.innerHTML = '<p class="help" style="margin:0">Les soldes apparaîtront ici dès qu\'il y aura des membres.</p>';
+    else wrap.querySelectorAll('p').forEach(n => n.remove());
+    sorted.forEach(p => {
+      let row = existing.get(p.id);
+      if (!row) {
+        row = document.createElement('div'); row.className = 'bal'; row.dataset.id = p.id; row.setAttribute('role', 'listitem'); row.dataset.flipId = 'b' + p.id;
+        row.innerHTML = `<div class="who">${avatar(p)}<span class="nm"></span></div><div class="track"><div class="fill"></div></div><div class="val num" data-v="0">0 €</div>`;
+      }
+      wrap.appendChild(row);
+      const v = b[p.id], pct = Math.abs(v) / max * 50;
+      row.querySelector('.who .nm').textContent = p.name;
+      const av = row.querySelector('.who .avatar'); av.style.background = p.color; av.textContent = initials(p.name);
+      const fill = row.querySelector('.fill');
+      fill.className = 'fill ' + (v >= 0 ? 'pos' : 'neg');
+      const val = row.querySelector('.val');
+      val.className = 'val num ' + (v > 0.004 ? 'pos' : v < -0.004 ? 'neg' : '');
+      countTo(val, v, x => (x > 0.004 ? '+' : '') + euro(x));
+      row.setAttribute('aria-label', `${p.name} : ${v > 0.004 ? 'doit recevoir ' + euro(v) : v < -0.004 ? 'doit ' + euro(-v) : 'à l\'équilibre'}`);
+      if (G) G.to(fill, { width: pct + '%', duration: .8, ease: 'power3.out' }); else fill.style.width = pct + '%';
+    });
+    if (flipState) Flip.from(flipState, { duration: .6, ease: 'power2.inOut', targets: '#balList .bal', onEnter: els => G.fromTo(els, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: .4 }) });
+
+    // settlements
+    const txs = settlements(b), ul = $('#setList');
+    const key = JSON.stringify(txs);
+    $('#txCount').textContent = txs.length ? txs.length + (txs.length > 1 ? ' virements' : ' virement') : '';
+    if (key === lastTxKey) return; lastTxKey = key;
+    if (!txs.length) {
+      const has = state.expenses.length > 0;
+      ul.innerHTML = `<li class="done">
+        <svg viewBox="0 0 84 84" fill="none" aria-hidden="true"><circle id="doneCircle" cx="42" cy="42" r="36" stroke="${has ? '#10B981' : '#CBD5E1'}" stroke-width="6"/><path id="doneTick" d="M27 43l10 10 20-22" stroke="${has ? '#047857' : '#CBD5E1'}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>${has ? 'Tout le monde est quitte !' : 'Rien à régler'}</h3>
+        <p>${has ? 'Personne ne doit rien à personne.' : 'Ajoute des dépenses pour voir qui doit quoi.'}</p></li>`;
+      if (G && has) drawDone();
+      return;
+    }
+    ul.innerHTML = txs.map((t, i) => {
+      const f = person(t.from), to = person(t.to);
+      return `<li class="tx" data-i="${i}">
+        <div class="route">${avatar(f)}<span class="arrow"><svg viewBox="0 0 100 24" preserveAspectRatio="none"><path class="arr" d="M2 12 H92" stroke="#047857" stroke-width="3" stroke-linecap="round" fill="none"/><path class="arr-h" d="M86 5 L95 12 L86 19" stroke="#047857" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>${avatar(to)}</div>
+        <div class="txt"><b>${esc(f.name)}</b> rembourse <b>${esc(to.name)}</b><span class="amt num">${euro(t.amount)}</span></div>
+        <button class="btn btn-soft" type="button" data-pay='${JSON.stringify(t)}' aria-label="Marquer comme payé : ${esc(f.name)} rembourse ${euro(t.amount)} à ${esc(to.name)}">
+          ${ico('<path d="M20 6L9 17l-5-5"/>')}C'est payé</button></li>`;
+    }).join('');
+    if (G) {
+      G.from('#setList .tx', { opacity: 0, y: 14, duration: .4, stagger: .07, ease: 'power2.out' });
+      ul.querySelectorAll('.arr').forEach((p, i) => { const L = p.getTotalLength(); G.fromTo(p, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: .6, delay: .15 + i * .07, ease: 'power2.inOut' }); });
+      G.from('#setList .arr-h', { opacity: 0, x: -6, duration: .3, delay: .55, stagger: .07 });
+    }
+  }
+  function drawDone() {
+    const c = $('#doneCircle'), t = $('#doneTick'); if (!c) return;
+    [c, t].forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; });
+    G.timeline().to(c, { strokeDashoffset: 0, duration: .6, ease: 'power2.inOut' }).to(t, { strokeDashoffset: 0, duration: .4, ease: 'power2.out' }, '-=.15')
+      .fromTo('#setList .done svg', { scale: .9 }, { scale: 1, duration: .5, ease: 'elastic.out(1,.4)' }, '-=.2');
+  }
+
+  function renderAll(opts = {}) {
+    $('#groupName').value = state.name;
+    renderPeople(opts.newPerson, opts.resetSplit); renderExpenses(opts.newExp); renderBalances();
+  }
+
+  // ---------- per-head preview ----------
+  function updatePerHead() {
+    const a = parseFloat($('#expAmount').value), n = document.querySelectorAll('#splitRow input:checked').length;
+    $('#perHead').innerHTML = a > 0 && n ? `Soit <b class="num">${euro(a / n)}</b> par personne (${n})` : '';
+  }
+  $('#expAmount').addEventListener('input', updatePerHead);
+  $('#splitRow').addEventListener('change', updatePerHead);
+
+  // ---------- events ----------
+  $('#groupName').addEventListener('input', e => { state.name = e.target.value || 'Mon groupe'; save(); });
+
+  $('#personForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const inp = $('#personName'), name = inp.value.trim(), err = $('#personErr');
+    if (!name) { err.textContent = 'Écris un prénom.'; inp.setAttribute('aria-invalid', 'true'); shake(inp); inp.focus(); return; }
+    if (state.people.some(p => p.name.toLowerCase() === name.toLowerCase())) { err.textContent = `${name} est déjà dans le groupe.`; inp.setAttribute('aria-invalid', 'true'); shake(inp); return; }
+    if (state.people.length >= 12) { err.textContent = 'Maximum 12 personnes par groupe.'; return; }
+    err.textContent = ''; inp.removeAttribute('aria-invalid');
+    const used = new Set(state.people.map(p => p.color));
+    const p = { id: state.nextId++, name, color: COLORS.find(c => !used.has(c)) || COLORS[state.people.length % COLORS.length] };
+    state.people.push(p); save(); inp.value = '';
+    renderAll({ newPerson: p.id });
+  });
+
+  $('#people').addEventListener('click', e => {
+    const b = e.target.closest('[data-del-person]'); if (!b) return;
+    const id = +b.dataset.delPerson, p = person(id);
+    if (state.expenses.some(x => x.payer === id || x.among.includes(id))) { toast(`${p.name} apparaît dans des dépenses : supprime-les d'abord.`); shake(b.closest('.chip')); return; }
+    const snapshot = JSON.stringify(state);
+    const chip = b.closest('.chip');
+    const go = () => { state.people = state.people.filter(x => x.id !== id); save(); renderAll(); toast(`${p.name} retiré du groupe`, () => { state = JSON.parse(snapshot); save(); renderAll(); }); };
+    if (G) G.to(chip, { scale: .5, opacity: 0, duration: .25, ease: 'power2.in', onComplete: go }); else go();
+  });
+
+  $('#expForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const title = $('#expTitle'), amt = $('#expAmount');
+    const among = [...document.querySelectorAll('#splitRow input:checked')].map(i => +i.value);
+    const a = Math.round(parseFloat(amt.value) * 100) / 100;
+    let bad = null;
+    const setErr = (inp, id, msg) => { $(id).textContent = msg; if (inp) inp.toggleAttribute('aria-invalid', !!msg); if (msg && !bad) bad = inp || $('#splitRow'); };
+    if (!state.people.length) { toast('Ajoute d\'abord les membres du groupe (étape 1).'); $('#personName').focus(); return; }
+    setErr(title, '#titleErr', title.value.trim() ? '' : 'Dis ce que c\'était (ex. Courses).');
+    setErr(amt, '#amountErr', a > 0 ? (a > 1e6 ? 'Montant trop élevé.' : '') : 'Indique un montant supérieur à 0.');
+    setErr(null, '#splitErr', among.length ? '' : 'Coche au moins une personne.');
+    if (bad) { shake(bad); bad.focus && bad.focus(); return; }
+    const cat = (document.querySelector('input[name=cat]:checked') || {}).value || 'autre';
+    const x = { id: state.nextId++, title: title.value.trim(), amount: a, payer: +$('#expPayer').value, among, cat, at: Date.now() };
+    state.expenses.push(x); save();
+    title.value = ''; amt.value = ''; updatePerHead();
+    renderAll({ newExp: x.id });
+    toast(`« ${x.title} » ajoutée : ${euro(x.amount)}`);
+    if (G) G.fromTo('#addExpBtn', { scale: .94 }, { scale: 1, duration: .5, ease: 'elastic.out(1,.4)' });
+    title.focus();
+  });
+
+  $('#expList').addEventListener('click', e => {
+    const b = e.target.closest('[data-del-exp]'); if (!b) return;
+    const id = +b.dataset.delExp, x = state.expenses.find(z => z.id === id), li = b.closest('.exp');
+    const idx = state.expenses.indexOf(x);
+    const go = () => { state.expenses.splice(idx, 1); save(); renderAll(); toast(`« ${x.title} » supprimée`, () => { state.expenses.splice(idx, 0, x); save(); renderAll({ newExp: x.id }); }); };
+    if (G) G.to(li, { x: 40, opacity: 0, height: 0, paddingTop: 0, paddingBottom: 0, marginTop: 0, duration: .32, ease: 'power2.in', onComplete: go }); else go();
+  });
+
+  $('#setList').addEventListener('click', e => {
+    const b = e.target.closest('[data-pay]'); if (!b) return;
+    const t = JSON.parse(b.dataset.pay), f = person(t.from), to = person(t.to);
+    const x = { id: state.nextId++, title: 'Remboursement', amount: t.amount, payer: t.from, among: [t.to], cat: 'remb', at: Date.now() };
+    const li = b.closest('.tx');
+    const go = () => { state.expenses.push(x); save(); renderAll({ newExp: x.id }); toast(`${f.name} a remboursé ${euro(t.amount)} à ${to.name}`, () => { state.expenses = state.expenses.filter(z => z.id !== x.id); save(); renderAll(); }); };
+    if (G) G.timeline({ onComplete: go }).to(li, { backgroundColor: '#D1FAE5', duration: .15 }).to(li, { x: 30, opacity: 0, duration: .3, ease: 'power2.in' });
+    else go();
+  });
+
+  // demo
+  $('#demoBtn').addEventListener('click', () => {
+    const load = () => {
+      state = { name: 'Coloc rue Nationale', nextId: 1, people: [], expenses: [] };
+      ['Léa', 'Sarah', 'Moussa', 'Dave'].forEach((n, i) => state.people.push({ id: state.nextId++, name: n, color: COLORS[i] }));
+      const [L, S, M, D] = state.people.map(p => p.id), all = [L, S, M, D];
+      [['Courses Lidl', 86.4, D, all, 'courses'], ['Électricité novembre', 72, L, all, 'logement'], ['Pizza vendredi soir', 54, S, all, 'sorties'],
+       ['Essence trip Angers', 48, M, [M, D, S], 'transport'], ['Papier toilette + lessive', 23.9, D, all, 'courses'], ['Ciné Pathé', 33, L, [L, S, M], 'sorties']]
+        .forEach(([title, amount, payer, among, cat]) => state.expenses.push({ id: state.nextId++, title, amount, payer, among, cat, at: Date.now() }));
+      save(); lastTxKey = ''; renderAll({ resetSplit: true });
+      document.getElementById('app').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      if (G) G.from('#expList .exp', { opacity: 0, y: 12, duration: .35, stagger: .05, delay: .3, ease: 'power2.out' });
+      toast('Exemple chargé : 4 colocs, 6 dépenses');
+    };
+    if (state.expenses.length || state.people.length) ask('Remplacer par l\'exemple ?', 'Ton groupe actuel sera remplacé par un groupe d\'exemple.', 'Remplacer', load); else load();
+  });
+
+  // reset + dialog
+  function ask(title, text, okLabel, fn) {
+    const d = $('#confirmDlg'); $('#dlgTitle').textContent = title; $('#dlgText').textContent = text; $('#dlgOk').textContent = okLabel;
+    const ok = () => { cleanup(); d.close(); fn(); }, cancel = () => { cleanup(); d.close(); };
+    const cleanup = () => { $('#dlgOk').removeEventListener('click', ok); $('#dlgCancel').removeEventListener('click', cancel); };
+    $('#dlgOk').addEventListener('click', ok); $('#dlgCancel').addEventListener('click', cancel);
+    d.showModal(); if (G) G.fromTo(d, { scale: .92, opacity: 0 }, { scale: 1, opacity: 1, duration: .3, ease: 'back.out(1.7)' });
+  }
+  $('#resetBtn').addEventListener('click', () => ask('Tout effacer ?', 'Les membres et toutes les dépenses de ce groupe seront supprimés de cet appareil.', 'Tout effacer', () => {
+    const snapshot = JSON.stringify(state);
+    state = { name: 'Ma coloc', people: [], expenses: [], nextId: 1 }; save(); lastTxKey = ''; renderAll({ resetSplit: true });
+    toast('Groupe effacé', () => { state = JSON.parse(snapshot); save(); lastTxKey = ''; renderAll({ resetSplit: true }); });
+  }));
+
+  // copy summary
+  $('#copyBtn').addEventListener('click', async () => {
+    const b = balances(), txs = settlements(b);
+    const total = state.expenses.filter(e => e.cat !== 'remb').reduce((s, e) => s + e.amount, 0);
+    const txt = [`${state.name} : comptes`, `Total dépensé : ${euro(total)}`, '',
+      ...(txs.length ? ['Pour tout régler :', ...txs.map(t => `- ${person(t.from).name} → ${person(t.to).name} : ${euro(t.amount)}`)] : ['Tout le monde est quitte.']),
+      '', 'Calculé avec Partage'].join('\n');
+    try { await navigator.clipboard.writeText(txt); toast('Résumé copié : colle-le dans le groupe WhatsApp'); }
+    catch (e) { toast('Copie impossible dans ce navigateur'); }
+  });
+
+  // ---------- hero animation ----------
+  function heroAnim() {
+    if (!G) return;
+    G.from('.h-anim', { opacity: 0, y: 24, duration: .7, stagger: .1, ease: 'power3.out' });
+    const u = $('#underline'), L = u.getTotalLength();
+    G.fromTo(u, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: .9, delay: .6, ease: 'power2.inOut' });
+    const cl = [...document.querySelectorAll('.cl')]; cl.forEach(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; });
+    const cap = $('#flowCap');
+    const tl = G.timeline({ repeat: -1, repeatDelay: 1.2, delay: .8 });
+    tl.from('.node', { scale: 0, transformOrigin: '50% 50%', duration: .5, stagger: .1, ease: 'back.out(2)' })
+      .set(cap, { textContent: '6 dettes croisées…' })
+      .fromTo('.mess', { opacity: 0 }, { opacity: 1, duration: .3, stagger: .12 })
+      .to('#messy', { strokeDashoffset: -44, duration: 1.2, ease: 'none' }, '<')
+      .to('.mess', { opacity: 0, duration: .4, stagger: .05 }, '+=.4')
+      .set(cap, { textContent: '6 dettes croisées → 2 virements' })
+      .to(cl, { strokeDashoffset: 0, duration: .7, stagger: .2, ease: 'power2.inOut' }, '-=.1')
+      .from('.badge', { scale: 0, transformOrigin: '50% 50%', duration: .4, stagger: .15, ease: 'back.out(2.5)' }, '-=.3')
+      .to({}, { duration: 2.2 })
+      .to(['.cl', '.badge'], { opacity: 0, duration: .4 })
+      .set(cl, { strokeDashoffset: i => cl[i].getTotalLength(), opacity: 1 })
+      .set('.badge', { opacity: 1 });
+    // pause when offscreen (perf)
+    new IntersectionObserver(([e]) => e.isIntersecting ? tl.play() : tl.pause()).observe($('.flow'));
+  }
+
+  renderAll();
+  heroAnim();
+  if (G) G.from('.app .card', { opacity: 0, y: 20, duration: .5, stagger: .08, ease: 'power2.out', scrollTrigger: undefined, delay: .4 });
+})();
+</script>
+</body>
+</html>
